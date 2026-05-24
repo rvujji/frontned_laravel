@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../features/auth/auth_provider.dart';
 
@@ -23,13 +24,25 @@ class RoleProtectedPage extends ConsumerWidget {
         return const Scaffold(body: Center(child: CircularProgressIndicator()));
       },
 
-      error: (_, __) {
+      error: (error, stackTrace) {
         return const Scaffold(body: Center(child: Text('Unauthorized')));
       },
 
       data: (user) {
+        debugPrint('USER ROLES => ${user?.roles}');
+        debugPrint('IS ADMIN => ${user?.isAdmin}');
         if (user == null || !allow(user)) {
-          return const Scaffold(body: Center(child: Text('Access denied')));
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (context.mounted) {
+              if (user?.isStudent ?? false) {
+                context.go('/my-enrollments');
+              } else {
+                context.go('/');
+              }
+            }
+          });
+
+          return const Scaffold(body: SizedBox());
         }
 
         return child;

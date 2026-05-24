@@ -10,7 +10,9 @@ class ManagedWorkshop {
   final String shortDescription;
 
   final String fullDescription;
-
+  final String? thumbnail;
+  final String? thumbnailUrl;
+  final String? videoUrl;
   final String status;
 
   final String price;
@@ -26,6 +28,9 @@ class ManagedWorkshop {
     required this.slug,
     required this.shortDescription,
     required this.fullDescription,
+    required this.thumbnail,
+    required this.thumbnailUrl,
+    required this.videoUrl,
     required this.status,
     required this.price,
     required this.isFeatured,
@@ -45,7 +50,9 @@ class ManagedWorkshop {
       shortDescription: json['short_description'] ?? '',
 
       fullDescription: json['full_description'] ?? '',
-
+      thumbnail: json['thumbnail'],
+      thumbnailUrl: json['thumbnail_url'],
+      videoUrl: json['video_url'],
       status: json['status'] ?? '',
 
       price: (json['price'] ?? '0').toString(),

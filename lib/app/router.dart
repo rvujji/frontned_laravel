@@ -13,19 +13,34 @@ import '../shared/navigation/role_protected_page.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/',
+
   routes: [
     GoRoute(
       path: '/',
+
       builder: (context, state) {
         return const HomePage();
       },
     ),
+
     GoRoute(
       path: '/workshops',
+
       builder: (context, state) {
         return const WorkshopListingPage();
       },
     ),
+
+    GoRoute(
+      path: '/workshops/:slug',
+
+      builder: (context, state) {
+        final slug = state.pathParameters['slug']!;
+
+        return WorkshopDetailPage(slug: slug);
+      },
+    ),
+
     GoRoute(
       path: '/login',
 
@@ -35,6 +50,7 @@ final appRouter = GoRouter(
         return LoginPage(redirect: redirect);
       },
     ),
+
     GoRoute(
       path: '/dashboard',
 
@@ -46,40 +62,40 @@ final appRouter = GoRouter(
         );
       },
     ),
-    GoRoute(
-      path: '/workshops/:slug',
 
-      builder: (context, state) {
-        final slug = state.pathParameters['slug']!;
-
-        return WorkshopDetailPage(slug: slug);
-      },
-    ),
     GoRoute(
       path: '/dashboard/workshops',
 
       builder: (context, state) {
         return RoleProtectedPage(
           allow: (user) => user.isAdmin || user.isTrainer,
+
           child: const WorkshopManagementPage(),
         );
       },
     ),
+
     GoRoute(
       path: '/dashboard/enrollments',
 
       builder: (context, state) {
         return RoleProtectedPage(
           allow: (user) => user.isAdmin || user.isTrainer,
+
           child: const EnrollmentsPage(),
         );
       },
     ),
+
     GoRoute(
       path: '/my-enrollments',
 
       builder: (context, state) {
-        return const ProtectedPage(child: MyEnrollmentsPage());
+        return ProtectedPage(
+          redirectTo: state.uri.toString(),
+
+          child: const MyEnrollmentsPage(),
+        );
       },
     ),
   ],

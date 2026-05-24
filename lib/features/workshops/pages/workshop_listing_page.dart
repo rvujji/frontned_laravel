@@ -64,7 +64,7 @@ class _WorkshopListingPageState extends ConsumerState<WorkshopListingPage> {
               crossAxisSpacing: 16,
               mainAxisSpacing: 16,
 
-              childAspectRatio: 1.1,
+              mainAxisExtent: 420,
             ),
 
             itemCount: 8,
@@ -136,7 +136,7 @@ class _WorkshopListingPageState extends ConsumerState<WorkshopListingPage> {
                         );
                       },
 
-                      error: (_, __) {
+                      error: (error, stackTrace) {
                         return const SizedBox();
                       },
 
@@ -199,7 +199,7 @@ class _WorkshopListingPageState extends ConsumerState<WorkshopListingPage> {
 
                                   mainAxisSpacing: 16,
 
-                                  childAspectRatio: 1.1,
+                                  mainAxisExtent: 420,
                                 ),
 
                             itemCount: workshops.length,

@@ -133,7 +133,7 @@ class _StatusChip extends StatelessWidget {
   Widget build(BuildContext context) {
     Color color = Colors.grey;
 
-    if (status == 'active') {
+    if (status == 'confirmed') {
       color = Colors.green;
     }
 

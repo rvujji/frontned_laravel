@@ -1,3 +1,6 @@
+import 'dart:typed_data';
+
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/api_client.dart';
@@ -29,53 +32,118 @@ class WorkshopManagementService {
 
   Future<void> createWorkshop({
     required int categoryId,
+
     required String title,
+
     required String slug,
+
     required String shortDescription,
+
     required String fullDescription,
+
     required String price,
+
     required String status,
+
     required bool isFeatured,
+
+    String? videoUrl,
+
+    Uint8List? thumbnailBytes,
+
+    String? thumbnailName,
   }) async {
-    await _apiClient.post(
-      '/v1/workshops',
-      data: {
-        'category_id': categoryId,
-        'title': title,
-        'slug': slug,
-        'short_description': shortDescription,
-        'full_description': fullDescription,
-        'price': double.tryParse(price) ?? 0,
-        'status': status,
-        'is_featured': isFeatured,
-      },
-    );
+    final formData = FormData.fromMap({
+      'category_id': categoryId,
+
+      'title': title,
+
+      'slug': slug,
+
+      'short_description': shortDescription,
+
+      'full_description': fullDescription,
+
+      'price': double.tryParse(price) ?? 0,
+
+      'status': status,
+
+      'is_featured': isFeatured ? 1 : 0,
+
+      'video_url': videoUrl,
+    });
+
+    if (thumbnailBytes != null && thumbnailName != null) {
+      formData.files.add(
+        MapEntry(
+          'thumbnail',
+
+          MultipartFile.fromBytes(thumbnailBytes, filename: thumbnailName),
+        ),
+      );
+    }
+
+    await _apiClient.post('/v1/workshops', data: formData);
   }
 
   Future<void> updateWorkshop({
     required int id,
+
     required int categoryId,
+
     required String title,
+
     required String slug,
+
     required String shortDescription,
+
     required String fullDescription,
+
     required String price,
+
     required String status,
+
     required bool isFeatured,
+
+    String? videoUrl,
+
+    Uint8List? thumbnailBytes,
+
+    String? thumbnailName,
   }) async {
-    await _apiClient.put(
-      '/v1/workshops/$id',
-      data: {
-        'category_id': categoryId,
-        'title': title,
-        'slug': slug,
-        'short_description': shortDescription,
-        'full_description': fullDescription,
-        'price': double.tryParse(price) ?? 0,
-        'status': status,
-        'is_featured': isFeatured,
-      },
-    );
+    final formData = FormData.fromMap({
+      'category_id': categoryId,
+
+      'title': title,
+
+      'slug': slug,
+
+      'short_description': shortDescription,
+
+      'full_description': fullDescription,
+
+      'price': double.tryParse(price) ?? 0,
+
+      'status': status,
+
+      'is_featured': isFeatured ? 1 : 0,
+
+      'video_url': videoUrl,
+
+      '_method': 'PUT',
+    });
+
+    if (thumbnailBytes != null && thumbnailName != null) {
+      formData.files.add(
+        MapEntry(
+          'thumbnail',
+
+          MultipartFile.fromBytes(thumbnailBytes, filename: thumbnailName),
+        ),
+      );
+    }
+
+    await _apiClient.post('/v1/workshops/$id', data: formData);
   }
 
   Future<List<WorkshopCategory>> fetchCategories() async {

@@ -1,3 +1,6 @@
+import 'dart:typed_data';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontned_laravel/features/workshop_management/workshop_management_page.dart';
@@ -25,12 +28,19 @@ class _WorkshopFormDialogState extends ConsumerState<WorkshopFormDialog> {
 
   late final TextEditingController _priceController;
 
+  late final TextEditingController _videoUrlController;
+
   String _status = 'draft';
+
   int? _categoryId;
 
   bool _isFeatured = false;
 
   bool _isSaving = false;
+
+  Uint8List? _thumbnailBytes;
+
+  String? _thumbnailName;
 
   bool get isEdit => widget.workshop != null;
 
@@ -54,7 +64,10 @@ class _WorkshopFormDialogState extends ConsumerState<WorkshopFormDialog> {
 
     _priceController = TextEditingController(text: workshop?.price ?? '');
 
+    _videoUrlController = TextEditingController(text: workshop?.videoUrl ?? '');
+
     _status = workshop?.status ?? 'draft';
+
     _categoryId = workshop?.categoryId;
 
     _isFeatured = workshop?.isFeatured ?? false;
@@ -72,7 +85,28 @@ class _WorkshopFormDialogState extends ConsumerState<WorkshopFormDialog> {
 
     _priceController.dispose();
 
+    _videoUrlController.dispose();
+
     super.dispose();
+  }
+
+  Future<void> _pickThumbnail() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+      withData: true,
+    );
+
+    if (result == null) {
+      return;
+    }
+
+    final file = result.files.first;
+
+    setState(() {
+      _thumbnailBytes = file.bytes;
+
+      _thumbnailName = file.name;
+    });
   }
 
   Future<void> _save() async {
@@ -83,6 +117,7 @@ class _WorkshopFormDialogState extends ConsumerState<WorkshopFormDialog> {
 
       return;
     }
+
     setState(() {
       _isSaving = true;
     });
@@ -93,7 +128,9 @@ class _WorkshopFormDialogState extends ConsumerState<WorkshopFormDialog> {
       if (isEdit) {
         await service.updateWorkshop(
           id: widget.workshop!.id,
+
           categoryId: _categoryId!,
+
           title: _titleController.text,
 
           slug: _slugController.text,
@@ -107,11 +144,19 @@ class _WorkshopFormDialogState extends ConsumerState<WorkshopFormDialog> {
           price: _priceController.text,
 
           status: _status,
+
+          videoUrl: _videoUrlController.text,
+
+          thumbnailBytes: _thumbnailBytes,
+
+          thumbnailName: _thumbnailName,
         );
       } else {
         await service.createWorkshop(
-          title: _titleController.text,
           categoryId: _categoryId!,
+
+          title: _titleController.text,
+
           slug: _slugController.text,
 
           shortDescription: _shortDescriptionController.text,
@@ -123,6 +168,12 @@ class _WorkshopFormDialogState extends ConsumerState<WorkshopFormDialog> {
           price: _priceController.text,
 
           status: _status,
+
+          videoUrl: _videoUrlController.text,
+
+          thumbnailBytes: _thumbnailBytes,
+
+          thumbnailName: _thumbnailName,
         );
       }
 
@@ -147,15 +198,18 @@ class _WorkshopFormDialogState extends ConsumerState<WorkshopFormDialog> {
   @override
   Widget build(BuildContext context) {
     final categoriesAsync = ref.watch(workshopCategoriesProvider);
+
     return AlertDialog(
       title: Text(isEdit ? 'Edit Workshop' : 'Create Workshop'),
 
       content: SizedBox(
-        width: 500,
+        width: 520,
 
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
+
+            crossAxisAlignment: CrossAxisAlignment.start,
 
             children: [
               TextField(
@@ -201,14 +255,76 @@ class _WorkshopFormDialogState extends ConsumerState<WorkshopFormDialog> {
               TextField(
                 controller: _priceController,
 
+                keyboardType: TextInputType.number,
+
                 decoration: const InputDecoration(labelText: 'Price'),
               ),
 
               const SizedBox(height: 16),
 
+              TextField(
+                controller: _videoUrlController,
+
+                decoration: const InputDecoration(
+                  labelText: 'Video URL',
+                  hintText: 'https://youtube.com/...',
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              const Text(
+                'Workshop Thumbnail',
+
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+
+              const SizedBox(height: 12),
+
+              OutlinedButton.icon(
+                onPressed: _pickThumbnail,
+
+                icon: const Icon(Icons.upload),
+
+                label: const Text('Choose Thumbnail'),
+              ),
+
+              const SizedBox(height: 16),
+
+              if (_thumbnailBytes != null)
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+
+                  child: Image.memory(
+                    _thumbnailBytes!,
+
+                    height: 180,
+
+                    width: double.infinity,
+
+                    fit: BoxFit.cover,
+                  ),
+                )
+              else if (widget.workshop?.thumbnailUrl != null)
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+
+                  child: Image.network(
+                    widget.workshop!.thumbnailUrl!,
+
+                    height: 180,
+
+                    width: double.infinity,
+
+                    fit: BoxFit.cover,
+                  ),
+                ),
+
+              const SizedBox(height: 24),
+
               categoriesAsync.when(
                 loading: () {
-                  return const CircularProgressIndicator();
+                  return const Center(child: CircularProgressIndicator());
                 },
 
                 error: (error, stackTrace) {
@@ -253,6 +369,8 @@ class _WorkshopFormDialogState extends ConsumerState<WorkshopFormDialog> {
 
                     child: Text('Published'),
                   ),
+
+                  DropdownMenuItem(value: 'archived', child: Text('Archived')),
                 ],
 
                 onChanged: (value) {
@@ -261,6 +379,7 @@ class _WorkshopFormDialogState extends ConsumerState<WorkshopFormDialog> {
                   });
                 },
               ),
+
               const SizedBox(height: 16),
 
               CheckboxListTile(

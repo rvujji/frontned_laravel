@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../shared/navigation/app_shell.dart';
 import '../../auth/auth_provider.dart';
@@ -12,7 +13,6 @@ final workshopDetailProvider = FutureProvider.family<Workshop, String>((
   slug,
 ) async {
   final service = ref.read(workshopServiceProvider);
-
   return service.fetchWorkshopBySlug(slug);
 });
 
@@ -29,7 +29,7 @@ class _WorkshopDetailPageState extends ConsumerState<WorkshopDetailPage> {
   bool _isEnrolling = false;
 
   Future<void> _enroll(Workshop workshop) async {
-    final user = ref.read(authProvider).value;
+    final user = ref.read(authProvider).valueOrNull;
 
     if (user == null) {
       context.go('/login?redirect=/workshops/${widget.slug}');
@@ -42,7 +42,6 @@ class _WorkshopDetailPageState extends ConsumerState<WorkshopDetailPage> {
 
     try {
       final service = ref.read(workshopServiceProvider);
-
       await service.enrollWorkshop(workshop.id);
 
       if (mounted) {
@@ -65,36 +64,62 @@ class _WorkshopDetailPageState extends ConsumerState<WorkshopDetailPage> {
     }
   }
 
+  Future<void> _openVideo(String url) async {
+    final uri = Uri.parse(url);
+    final launched = await launchUrl(uri);
+
+    if (!launched && mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Could not open video')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final workshopAsync = ref.watch(workshopDetailProvider(widget.slug));
 
     return AppShell(
       child: workshopAsync.when(
-        loading: () {
-          return const Center(child: CircularProgressIndicator());
-        },
-
-        error: (error, stackTrace) {
-          return Center(child: Text(error.toString()));
-        },
-
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, stackTrace) => Center(child: Text(error.toString())),
         data: (workshop) {
           return SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-
               children: [
+                if (workshop.thumbnailUrl != null)
+                  if (workshop.thumbnailUrl != null &&
+                      workshop.thumbnailUrl!.isNotEmpty)
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(24),
+
+                      child: AspectRatio(
+                        aspectRatio: 16 / 9,
+
+                        child: Image.network(
+                          workshop.thumbnailUrl!,
+
+                          fit: BoxFit.cover,
+
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              color: Colors.grey.shade300,
+
+                              child: const Center(
+                                child: Icon(Icons.image, size: 64),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
                 Container(
                   width: double.infinity,
-
                   padding: const EdgeInsets.all(48),
-
                   color: Colors.indigo.shade50,
-
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-
                     children: [
                       if (workshop.isFeatured == true)
                         Container(
@@ -102,106 +127,92 @@ class _WorkshopDetailPageState extends ConsumerState<WorkshopDetailPage> {
                             horizontal: 12,
                             vertical: 6,
                           ),
-
                           decoration: BoxDecoration(
                             color: Colors.orange,
-
                             borderRadius: BorderRadius.circular(24),
                           ),
-
                           child: const Text(
                             'Featured',
-
                             style: TextStyle(color: Colors.white),
                           ),
                         ),
-
                       const SizedBox(height: 16),
-
                       Text(
                         workshop.title,
-
                         style: const TextStyle(
                           fontSize: 42,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-
                       const SizedBox(height: 16),
-
                       Text(
                         workshop.shortDescription ?? '',
-
                         style: const TextStyle(fontSize: 20, height: 1.5),
                       ),
-
                       const SizedBox(height: 24),
-
                       Wrap(
                         spacing: 16,
                         runSpacing: 16,
-
                         children: [
                           Chip(label: Text(workshop.category?.name ?? '')),
-
                           Chip(label: Text(workshop.status)),
-
                           Chip(label: Text('₹ ${workshop.price}')),
                         ],
                       ),
-
-                      const SizedBox(height: 32),
-
-                      ElevatedButton(
-                        onPressed: _isEnrolling
-                            ? null
-                            : () {
-                                _enroll(workshop);
+                      const SizedBox(height: 24),
+                      Wrap(
+                        spacing: 12,
+                        runSpacing: 12,
+                        children: [
+                          if (workshop.videoUrl != null &&
+                              workshop.videoUrl!.isNotEmpty)
+                            OutlinedButton.icon(
+                              onPressed: () async {
+                                await _openVideo(workshop.videoUrl!);
                               },
-
-                        child: _isEnrolling
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Padding(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 24,
-                                  vertical: 16,
-                                ),
-
-                                child: Text('Enroll Now'),
-                              ),
+                              icon: const Icon(Icons.play_circle_outline),
+                              label: const Text('Watch Intro Video'),
+                            ),
+                          ElevatedButton(
+                            onPressed: _isEnrolling
+                                ? null
+                                : () => _enroll(workshop),
+                            child: _isEnrolling
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Padding(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 24,
+                                      vertical: 16,
+                                    ),
+                                    child: Text('Enroll Now'),
+                                  ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ),
-
                 Padding(
                   padding: const EdgeInsets.all(32),
-
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-
                     children: [
                       const Text(
                         'Workshop Details',
-
                         style: TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-
                       const SizedBox(height: 24),
-
                       Text(
                         workshop.fullDescription ?? '',
-
                         style: const TextStyle(fontSize: 18, height: 1.8),
                       ),
                     ],

@@ -2,38 +2,36 @@ class Enrollment {
   final int id;
 
   final int workshopId;
+
   final int studentId;
 
   final String status;
 
   final String? enrolledAt;
 
-  final String? cancelledAt;
-
-  final String? completedAt;
-
-  final String? createdAt;
+  final String studentName;
 
   final String workshopTitle;
 
-  final String studentName;
-
-  Enrollment({
+  const Enrollment({
     required this.id,
+
     required this.workshopId,
+
     required this.studentId,
+
     required this.status,
-    required this.enrolledAt,
-    required this.cancelledAt,
-    required this.completedAt,
-    required this.createdAt,
-    required this.workshopTitle,
+
     required this.studentName,
+
+    required this.workshopTitle,
+
+    this.enrolledAt,
   });
 
   factory Enrollment.fromJson(Map<String, dynamic> json) {
     return Enrollment(
-      id: json['id'],
+      id: json['id'] ?? 0,
 
       workshopId: json['workshop_id'] ?? 0,
 
@@ -43,15 +41,9 @@ class Enrollment {
 
       enrolledAt: json['enrolled_at'],
 
-      cancelledAt: json['cancelled_at'],
+      studentName: json['student']?['name']?.toString() ?? '',
 
-      completedAt: json['completed_at'],
-
-      createdAt: json['created_at'],
-
-      workshopTitle: json['workshop']?['title'] ?? '',
-
-      studentName: json['student']?['name'] ?? '',
+      workshopTitle: json['workshop']?['title']?.toString() ?? '',
     );
   }
 }

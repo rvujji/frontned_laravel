@@ -34,12 +34,19 @@ class AuthNotifier extends AsyncNotifier<User?> {
     try {
       final service = ref.read(authServiceProvider);
 
-      final response = await service.login(email: email, password: password);
+      // Login only for token
+      await service.login(email: email, password: password);
 
-      state = AsyncData(response.user);
+      // Fetch full identity
+      final user = await service.me();
+
+      // Store hydrated user
+      state = AsyncData(user);
+
       return true;
     } catch (e, stackTrace) {
       state = AsyncError(e, stackTrace);
+
       return false;
     }
   }

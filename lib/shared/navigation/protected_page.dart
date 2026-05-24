@@ -7,7 +7,9 @@ import '../../features/auth/auth_provider.dart';
 class ProtectedPage extends ConsumerWidget {
   final Widget child;
 
-  const ProtectedPage({super.key, required this.child});
+  final String? redirectTo;
+
+  const ProtectedPage({super.key, required this.child, this.redirectTo});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -18,9 +20,11 @@ class ProtectedPage extends ConsumerWidget {
         return const Scaffold(body: Center(child: CircularProgressIndicator()));
       },
 
-      error: (_, __) {
-        Future.microtask(() {
-          context.go('/login');
+      error: (error, stackTrace) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (context.mounted) {
+            context.go('/login');
+          }
         });
 
         return const SizedBox();
@@ -28,10 +32,14 @@ class ProtectedPage extends ConsumerWidget {
 
       data: (user) {
         if (user == null) {
-          Future.microtask(() {
-            context.go(
-              '/login?redirect=${Uri.encodeComponent(GoRouterState.of(context).uri.toString())}',
-            );
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (context.mounted) {
+              final redirect = redirectTo != null
+                  ? '?redirect=${Uri.encodeComponent(redirectTo!)}'
+                  : '';
+
+              context.go('/login$redirect');
+            }
           });
 
           return const SizedBox();

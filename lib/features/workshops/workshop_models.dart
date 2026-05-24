@@ -5,6 +5,9 @@ class Workshop {
 
   final String? shortDescription;
   final String? fullDescription;
+  final String? thumbnail;
+  final String? thumbnailUrl;
+  final String? videoUrl;
   final String price;
   final String status;
   final bool isFeatured;
@@ -16,6 +19,9 @@ class Workshop {
     required this.slug,
     required this.shortDescription,
     required this.fullDescription,
+    required this.thumbnail,
+    required this.thumbnailUrl,
+    required this.videoUrl,
     required this.price,
     required this.status,
     required this.isFeatured,
@@ -33,7 +39,11 @@ class Workshop {
       shortDescription: json['short_description'],
 
       fullDescription: json['full_description'],
+      thumbnail: json['thumbnail'],
 
+      thumbnailUrl: json['thumbnail_url'],
+
+      videoUrl: json['video_url'],
       price: json['price'] ?? '0',
       status: json['status'] ?? '',
 

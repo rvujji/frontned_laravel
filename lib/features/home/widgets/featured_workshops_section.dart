@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../shared/responsive_layout.dart';
-import '../../workshops/widgets/workshop_card.dart';
+import '../../workshops/widgets/compact_workshop_card.dart';
 import '../../workshops/workshop_provider.dart';
 
 class FeaturedWorkshopsSection extends ConsumerWidget {
@@ -57,13 +57,13 @@ class FeaturedWorkshopsSection extends ConsumerWidget {
 
                       mainAxisSpacing: 16,
 
-                      childAspectRatio: 1.1,
+                      mainAxisExtent: 340,
                     ),
 
                     itemCount: workshops.length,
 
                     itemBuilder: (context, index) {
-                      return WorkshopCard(workshop: workshops[index]);
+                      return CompactWorkshopCard(workshop: workshops[index]);
                     },
                   );
                 },
