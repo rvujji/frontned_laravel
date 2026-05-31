@@ -14,195 +14,411 @@ class AdminOfferingEnrollmentPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final enrollmentsAsync = ref.watch(offeringEnrollmentProvider);
 
+    final filtersAsync = ref.watch(enrollmentFiltersLookupProvider);
+
+    final filters = ref.watch(enrollmentFiltersProvider);
+
     return DashboardShell(
       title: 'Offering Enrollments',
 
-      child: enrollmentsAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+      child: Column(
+        children: [
+          filtersAsync.when(
+            loading: () => const LinearProgressIndicator(),
 
-        error: (error, stackTrace) {
-          debugPrint(error.toString());
+            error: (_, __) => const SizedBox(),
 
-          debugPrintStack(stackTrace: stackTrace);
+            data: (lookup) {
+              final filteredOfferings = lookup.offerings.where((o) {
+                if (filters.workshopId == null) {
+                  return true;
+                }
 
-          return Center(child: Text(error.toString()));
-        },
+                return o.workshopId == filters.workshopId;
+              }).toList();
 
-        data: (enrollments) {
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+              return Padding(
+                padding: const EdgeInsets.all(24),
 
-            child: Card(
-              elevation: 0,
+                child: Wrap(
+                  spacing: 16,
+                  runSpacing: 16,
 
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(24),
+                  children: [
+                    SizedBox(
+                      width: 220,
 
-                side: BorderSide(color: Colors.grey.shade300),
-              ),
+                      child: DropdownButtonFormField<int>(
+                        initialValue: filters.workshopId,
 
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
+                        decoration: const InputDecoration(
+                          labelText: 'Workshop',
+                        ),
 
-                child: DataTable(
-                  headingRowHeight: 64,
+                        items: [
+                          const DropdownMenuItem(
+                            value: null,
+                            child: Text('All'),
+                          ),
 
-                  dataRowHeight: 72,
+                          ...lookup.workshops.map(
+                            (workshop) => DropdownMenuItem(
+                              value: workshop.id,
 
-                  columns: const [
-                    DataColumn(label: Text('Learner')),
-
-                    DataColumn(label: Text('Offering')),
-
-                    DataColumn(label: Text('Enrollment')),
-
-                    DataColumn(label: Text('Completion')),
-
-                    DataColumn(label: Text('Progress')),
-
-                    DataColumn(label: Text('Attendance')),
-
-                    DataColumn(label: Text('Certificate')),
-
-                    DataColumn(label: Text('Enrolled')),
-                  ],
-
-                  rows: enrollments.map((enrollment) {
-                    return DataRow(
-                      onSelectChanged: (_) {
-                        showDialog(
-                          context: context,
-
-                          builder: (_) {
-                            return OfferingEnrollmentDialog(
-                              enrollment: enrollment,
-                            );
-                          },
-                        );
-                      },
-
-                      cells: [
-                        DataCell(
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-
-                            crossAxisAlignment: CrossAxisAlignment.start,
-
-                            children: [
-                              Text(
-                                enrollment.learnerName,
-
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
+                              child: SizedBox(
+                                width: 180,
+                                child: Text(
+                                  workshop.title,
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
                                 ),
                               ),
+                            ),
+                          ),
+                        ],
 
-                              const SizedBox(height: 4),
+                        onChanged: (value) {
+                          ref
+                              .read(enrollmentFiltersProvider.notifier)
+                              .state = filters.copyWith(
+                            workshopId: value,
+                            clearOffering: true,
+                            page: 1,
+                          );
+                        },
+                      ),
+                    ),
+
+                    SizedBox(
+                      width: 220,
+
+                      child: DropdownButtonFormField<int>(
+                        initialValue: filters.offeringId,
+
+                        decoration: const InputDecoration(
+                          labelText: 'Offering',
+                        ),
+
+                        items: [
+                          const DropdownMenuItem(
+                            value: null,
+                            child: Text('All'),
+                          ),
+
+                          ...filteredOfferings.map(
+                            (offering) => DropdownMenuItem(
+                              value: offering.id,
+
+                              child: SizedBox(
+                                width: 180,
+                                child: Text(
+                                  offering.title,
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+
+                        onChanged: (value) {
+                          ref.read(enrollmentFiltersProvider.notifier).state =
+                              filters.copyWith(offeringId: value, page: 1);
+                        },
+                      ),
+                    ),
+
+                    SizedBox(
+                      width: 220,
+
+                      child: DropdownButtonFormField<int>(
+                        initialValue: filters.studentId,
+
+                        decoration: const InputDecoration(labelText: 'Student'),
+
+                        items: [
+                          const DropdownMenuItem(
+                            value: null,
+                            child: Text('All'),
+                          ),
+
+                          ...lookup.students.map(
+                            (student) => DropdownMenuItem(
+                              value: student.id,
+
+                              child: SizedBox(
+                                width: 180,
+                                child: Text(
+                                  student.name,
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+
+                        onChanged: (value) {
+                          ref.read(enrollmentFiltersProvider.notifier).state =
+                              filters.copyWith(studentId: value, page: 1);
+                        },
+                      ),
+                    ),
+
+                    SizedBox(
+                      width: 220,
+
+                      child: DropdownButtonFormField<String>(
+                        initialValue: filters.completionStatus,
+
+                        decoration: const InputDecoration(
+                          labelText: 'Completion',
+                        ),
+
+                        items: [
+                          const DropdownMenuItem(
+                            value: null,
+                            child: Text('All'),
+                          ),
+
+                          ...lookup.completionStatuses.map(
+                            (status) => DropdownMenuItem(
+                              value: status,
+
+                              child: Text(status.displayLabel),
+                            ),
+                          ),
+                        ],
+
+                        onChanged: (value) {
+                          ref
+                              .read(enrollmentFiltersProvider.notifier)
+                              .state = filters.copyWith(
+                            completionStatus: value,
+                            page: 1,
+                          );
+                        },
+                      ),
+                    ),
+
+                    SizedBox(
+                      width: 260,
+
+                      child: TextFormField(
+                        initialValue: filters.search,
+
+                        decoration: InputDecoration(
+                          labelText: 'Search',
+
+                          suffixIcon: IconButton(
+                            icon: const Icon(Icons.search),
+                            onPressed: () {},
+                          ),
+                        ),
+
+                        onChanged: (value) {
+                          ref.read(enrollmentFiltersProvider.notifier).state =
+                              filters.copyWith(search: value, page: 1);
+                        },
+                      ),
+                    ),
+
+                    OutlinedButton.icon(
+                      onPressed: () {
+                        ref.read(enrollmentFiltersProvider.notifier).state =
+                            const EnrollmentFilters();
+                      },
+
+                      icon: const Icon(Icons.clear),
+
+                      label: const Text('Clear'),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+
+          Expanded(
+            child: enrollmentsAsync.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+
+              error: (error, stackTrace) {
+                debugPrint(error.toString());
+
+                return Center(child: Text(error.toString()));
+              },
+
+              data: (pageData) {
+                final enrollments = pageData.data;
+
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+
+                  child: Card(
+                    child: Column(
+                      children: [
+                        Expanded(
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+
+                            child: DataTable(
+                              columns: const [
+                                DataColumn(label: Text('Workshop')),
+
+                                DataColumn(label: Text('Offering')),
+
+                                DataColumn(label: Text('Student')),
+
+                                DataColumn(label: Text('Completion')),
+
+                                DataColumn(label: Text('Progress')),
+
+                                DataColumn(label: Text('Attendance')),
+
+                                DataColumn(label: Text('Certificate')),
+
+                                DataColumn(label: Text('Enrolled')),
+                              ],
+
+                              rows: enrollments.map((enrollment) {
+                                return DataRow(
+                                  onSelectChanged: (_) {
+                                    showDialog(
+                                      context: context,
+                                      builder: (_) => OfferingEnrollmentDialog(
+                                        enrollment: enrollment,
+                                      ),
+                                    );
+                                  },
+
+                                  cells: [
+                                    DataCell(Text(enrollment.workshopTitle)),
+
+                                    DataCell(
+                                      SizedBox(
+                                        width: 220,
+                                        child: Text(enrollment.offeringTitle),
+                                      ),
+                                    ),
+
+                                    DataCell(
+                                      Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+
+                                        children: [
+                                          Text(enrollment.learnerName),
+
+                                          Text(enrollment.learnerEmail),
+                                        ],
+                                      ),
+                                    ),
+
+                                    DataCell(
+                                      Chip(
+                                        label: Text(
+                                          enrollment
+                                              .completionStatus
+                                              .name
+                                              .displayLabel,
+                                        ),
+                                      ),
+                                    ),
+
+                                    DataCell(
+                                      Text(
+                                        '${enrollment.progressPercentage.toStringAsFixed(0)}%',
+                                      ),
+                                    ),
+
+                                    DataCell(
+                                      Text(
+                                        '${enrollment.attendedSessions}/${enrollment.totalSessions}',
+                                      ),
+                                    ),
+
+                                    DataCell(
+                                      Icon(
+                                        enrollment.certificateIssued
+                                            ? Icons.verified
+                                            : Icons.hourglass_bottom,
+                                      ),
+                                    ),
+
+                                    DataCell(
+                                      Text(enrollment.enrolledAt.readableDate),
+                                    ),
+                                  ],
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                        ),
+
+                        Container(
+                          padding: const EdgeInsets.all(16),
+
+                          child: Row(
+                            children: [
+                              Text(
+                                'Showing ${enrollments.length} of ${pageData.total}',
+                              ),
+
+                              const Spacer(),
+
+                              IconButton(
+                                onPressed: pageData.currentPage > 1
+                                    ? () {
+                                        ref
+                                            .read(
+                                              enrollmentFiltersProvider
+                                                  .notifier,
+                                            )
+                                            .state = filters.copyWith(
+                                          page: pageData.currentPage - 1,
+                                        );
+                                      }
+                                    : null,
+
+                                icon: const Icon(Icons.chevron_left),
+                              ),
 
                               Text(
-                                enrollment.learnerEmail,
+                                'Page ${pageData.currentPage} of ${pageData.lastPage}',
+                              ),
 
-                                style: TextStyle(
-                                  fontSize: 12,
+                              IconButton(
+                                onPressed:
+                                    pageData.currentPage < pageData.lastPage
+                                    ? () {
+                                        ref
+                                            .read(
+                                              enrollmentFiltersProvider
+                                                  .notifier,
+                                            )
+                                            .state = filters.copyWith(
+                                          page: pageData.currentPage + 1,
+                                        );
+                                      }
+                                    : null,
 
-                                  color: Colors.grey.shade600,
-                                ),
+                                icon: const Icon(Icons.chevron_right),
                               ),
                             ],
                           ),
                         ),
-
-                        DataCell(
-                          SizedBox(
-                            width: 240,
-
-                            child: Text(enrollment.offeringTitle),
-                          ),
-                        ),
-
-                        DataCell(
-                          Chip(
-                            backgroundColor:
-                                enrollment.enrollmentStatus.name == 'cancelled'
-                                ? Colors.red.withOpacity(.1)
-                                : null,
-
-                            label: Text(
-                              enrollment.enrollmentStatus.name.displayLabel,
-                            ),
-                          ),
-                        ),
-
-                        DataCell(
-                          Chip(
-                            label: Text(
-                              enrollment.completionStatus.name.displayLabel,
-                            ),
-                          ),
-                        ),
-
-                        DataCell(
-                          SizedBox(
-                            width: 120,
-
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-
-                              crossAxisAlignment: CrossAxisAlignment.start,
-
-                              children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-
-                                  child: LinearProgressIndicator(
-                                    minHeight: 8,
-
-                                    value: enrollment.progressPercentage / 100,
-                                  ),
-                                ),
-
-                                const SizedBox(height: 8),
-
-                                Text(
-                                  '${enrollment.progressPercentage.toStringAsFixed(0)}%',
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-
-                        DataCell(
-                          Text(
-                            '${enrollment.attendedSessions} / '
-                            '${enrollment.requiredSessions}',
-                          ),
-                        ),
-
-                        DataCell(
-                          Icon(
-                            enrollment.certificateIssued
-                                ? Icons.verified
-                                : enrollment.certificateEligible
-                                ? Icons.workspace_premium
-                                : Icons.hourglass_bottom,
-
-                            color: enrollment.certificateIssued
-                                ? Colors.green
-                                : enrollment.certificateEligible
-                                ? Colors.orange
-                                : Colors.grey,
-                          ),
-                        ),
-
-                        DataCell(Text(enrollment.enrolledAt.readableDate)),
                       ],
-                    );
-                  }).toList(),
-                ),
-              ),
+                    ),
+                  ),
+                );
+              },
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }

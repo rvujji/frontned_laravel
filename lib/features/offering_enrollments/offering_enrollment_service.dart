@@ -4,12 +4,42 @@ import 'offering_enrollment_models.dart';
 class OfferingEnrollmentService {
   final ApiClient _apiClient = ApiClient();
 
-  Future<List<OfferingEnrollmentModel>> fetchEnrollments() async {
-    final response = await _apiClient.get('/v1/admin/offering-enrollments');
+  Future<PaginatedEnrollments> fetchEnrollments({
+    int? workshopId,
+    int? offeringId,
+    int? studentId,
+    String? completionStatus,
+    String? search,
+    int page = 1,
+    int perPage = 15,
+  }) async {
+    final response = await _apiClient.get(
+      '/v1/admin/offering-enrollments',
+      queryParameters: {
+        if (workshopId != null) 'workshop_id': workshopId,
+        if (offeringId != null) 'offering_id': offeringId,
+        if (studentId != null) 'student_id': studentId,
+        if (completionStatus != null && completionStatus.isNotEmpty)
+          'completion_status': completionStatus,
+        if (search != null && search.isNotEmpty) 'search': search,
+        'page': page,
+        'per_page': perPage,
+      },
+    );
 
-    final data = response['data'] as List<dynamic>;
+    return PaginatedEnrollments.fromJson(
+      Map<String, dynamic>.from(response['data']),
+    );
+  }
 
-    return data.map((e) => OfferingEnrollmentModel.fromJson(e)).toList();
+  Future<EnrollmentFiltersResponse> fetchFilters() async {
+    final response = await _apiClient.get(
+      '/v1/admin/offering-enrollments/filters',
+    );
+
+    return EnrollmentFiltersResponse.fromJson(
+      Map<String, dynamic>.from(response['data']),
+    );
   }
 
   Future<void> issueCertificate(int enrollmentId) async {

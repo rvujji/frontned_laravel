@@ -104,7 +104,8 @@ class _OfferingEnrollmentDialogState
                 title: 'Offering',
 
                 children: [
-                  _InfoRow(label: 'Title', value: enrollment.offeringTitle),
+                  _InfoRow(label: 'Workshop', value: enrollment.workshopTitle),
+                  _InfoRow(label: 'Offering', value: enrollment.offeringTitle),
 
                   _InfoRow(
                     label: 'Enrolled At',
@@ -144,7 +145,14 @@ class _OfferingEnrollmentDialogState
 
                     value:
                         '${enrollment.attendedSessions} / '
-                        '${enrollment.requiredSessions}',
+                        '${enrollment.totalSessions}',
+                  ),
+
+                  _InfoRow(
+                    label: 'Attendance %',
+
+                    value:
+                        '${enrollment.attendancePercentage.toStringAsFixed(0)}%',
                   ),
                 ],
               ),
