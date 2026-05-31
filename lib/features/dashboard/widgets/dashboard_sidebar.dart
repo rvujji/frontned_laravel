@@ -13,7 +13,13 @@ class DashboardSidebar extends ConsumerWidget {
     final user = authState.value;
     final canManageWorkshops = user?.can('workshop:read') ?? false;
 
+    final canManageOfferings = user?.can('offering:read') ?? false;
+
+    final canManageSessions = user?.can('session:read') ?? false;
+
     final canManageEnrollments = user?.can('enrollment:read') ?? false;
+
+    final canManageAttendance = user?.can('attendance:read') ?? false;
 
     return Container(
       color: Colors.indigo.shade700,
@@ -47,12 +53,36 @@ class DashboardSidebar extends ConsumerWidget {
                   context.go('/dashboard/workshops');
                 },
               ),
+            if (canManageOfferings)
+              _SidebarItem(
+                title: 'Offerings',
+                icon: Icons.event_note,
+                onTap: () {
+                  context.go('/dashboard/offerings');
+                },
+              ),
+            if (canManageSessions)
+              _SidebarItem(
+                title: 'Sessions',
+                icon: Icons.schedule,
+                onTap: () {
+                  context.go('/dashboard/sessions');
+                },
+              ),
             if (canManageEnrollments)
               _SidebarItem(
                 title: 'Enrollments',
                 icon: Icons.people,
                 onTap: () {
-                  context.go('/dashboard/enrollments');
+                  context.go('/dashboard/offering-enrollments');
+                },
+              ),
+            if (canManageAttendance)
+              _SidebarItem(
+                title: 'Attendance',
+                icon: Icons.fact_check,
+                onTap: () {
+                  context.go('/dashboard/attendance');
                 },
               ),
             const Spacer(),

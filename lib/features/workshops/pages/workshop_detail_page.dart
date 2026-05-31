@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../shared/navigation/app_shell.dart';
-import '../../auth/auth_provider.dart';
+import '../../../shared/utility/string_extension.dart';
+import '../../offerings/providers/offering_provider.dart';
+import '../../offerings/widgets/offering_card.dart';
 import '../workshop_models.dart';
 import '../workshop_service.dart';
 
@@ -28,42 +29,6 @@ class WorkshopDetailPage extends ConsumerStatefulWidget {
 class _WorkshopDetailPageState extends ConsumerState<WorkshopDetailPage> {
   bool _isEnrolling = false;
 
-  Future<void> _enroll(Workshop workshop) async {
-    final user = ref.read(authProvider).valueOrNull;
-
-    if (user == null) {
-      context.go('/login?redirect=/workshops/${widget.slug}');
-      return;
-    }
-
-    setState(() {
-      _isEnrolling = true;
-    });
-
-    try {
-      final service = ref.read(workshopServiceProvider);
-      await service.enrollWorkshop(workshop.id);
-
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Enrollment successful')));
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(e.toString())));
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isEnrolling = false;
-        });
-      }
-    }
-  }
-
   Future<void> _openVideo(String url) async {
     final uri = Uri.parse(url);
     final launched = await launchUrl(uri);
@@ -78,7 +43,7 @@ class _WorkshopDetailPageState extends ConsumerState<WorkshopDetailPage> {
   @override
   Widget build(BuildContext context) {
     final workshopAsync = ref.watch(workshopDetailProvider(widget.slug));
-
+    final offeringsAsync = ref.watch(workshopOfferingsProvider(widget.slug));
     return AppShell(
       child: workshopAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -154,8 +119,12 @@ class _WorkshopDetailPageState extends ConsumerState<WorkshopDetailPage> {
                         spacing: 16,
                         runSpacing: 16,
                         children: [
-                          Chip(label: Text(workshop.category?.name ?? '')),
-                          Chip(label: Text(workshop.status)),
+                          Chip(
+                            label: Text(
+                              workshop.category?.name.displayLabel ?? '',
+                            ),
+                          ),
+                          Chip(label: Text(workshop.status.displayLabel)),
                           Chip(label: Text('₹ ${workshop.price}')),
                         ],
                       ),
@@ -173,26 +142,6 @@ class _WorkshopDetailPageState extends ConsumerState<WorkshopDetailPage> {
                               icon: const Icon(Icons.play_circle_outline),
                               label: const Text('Watch Intro Video'),
                             ),
-                          ElevatedButton(
-                            onPressed: _isEnrolling
-                                ? null
-                                : () => _enroll(workshop),
-                            child: _isEnrolling
-                                ? const SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                    ),
-                                  )
-                                : const Padding(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 24,
-                                      vertical: 16,
-                                    ),
-                                    child: Text('Enroll Now'),
-                                  ),
-                          ),
                         ],
                       ),
                     ],
@@ -214,6 +163,63 @@ class _WorkshopDetailPageState extends ConsumerState<WorkshopDetailPage> {
                       Text(
                         workshop.fullDescription ?? '',
                         style: const TextStyle(fontSize: 18, height: 1.8),
+                      ),
+                      const SizedBox(height: 56),
+
+                      const Text(
+                        'Available Offerings',
+                        style: TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      offeringsAsync.when(
+                        loading: () {
+                          return const Padding(
+                            padding: EdgeInsets.all(24),
+                            child: Center(child: CircularProgressIndicator()),
+                          );
+                        },
+
+                        error: (error, stackTrace) {
+                          return Text(error.toString());
+                        },
+
+                        data: (offerings) {
+                          if (offerings.isEmpty) {
+                            return Container(
+                              padding: const EdgeInsets.all(24),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey.shade300),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: const Text(
+                                'No offerings available currently.',
+                              ),
+                            );
+                          }
+
+                          return GridView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: offerings.length,
+
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 2,
+                                  crossAxisSpacing: 20,
+                                  mainAxisSpacing: 20,
+                                  mainAxisExtent: 240,
+                                ),
+
+                            itemBuilder: (context, index) {
+                              return OfferingCard(offering: offerings[index]);
+                            },
+                          );
+                        },
                       ),
                     ],
                   ),

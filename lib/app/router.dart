@@ -1,14 +1,22 @@
 import 'package:go_router/go_router.dart';
 
+import '../features/attendance/attendance_management_page.dart';
+import '../features/attendance/learner_attendance_page.dart';
 import '../features/auth/pages/login_page.dart';
+import '../features/certificates/certificates_page.dart';
 import '../features/dashboard/pages/dashboard_page.dart';
-import '../features/enrollments/pages/enrollments_page.dart';
-import '../features/enrollments/pages/my_enrollments_page.dart';
 import '../features/home/home_page.dart';
+import '../features/learning/pages/learning_detail_page.dart';
+import '../features/learning/pages/my_learning_page.dart';
+import '../features/offering_enrollments/offering_enrollment_page.dart';
+import '../features/offering_management/offering_management_page.dart';
+import '../features/offerings/pages/offering_detail_page.dart';
+import '../features/progress/learner_progress_page.dart';
+import '../features/schedule/schedule_page.dart';
+import '../features/session_management/session_management_page.dart';
 import '../features/workshop_management/workshop_management_page.dart';
 import '../features/workshops/pages/workshop_detail_page.dart';
 import '../features/workshops/pages/workshop_listing_page.dart';
-import '../shared/navigation/protected_page.dart';
 import '../shared/navigation/role_protected_page.dart';
 
 final appRouter = GoRouter(
@@ -64,6 +72,16 @@ final appRouter = GoRouter(
     ),
 
     GoRoute(
+      path: '/learning/:id',
+
+      builder: (context, state) {
+        final id = int.parse(state.pathParameters['id']!);
+
+        return LearningDetailPage(enrollmentId: id);
+      },
+    ),
+
+    GoRoute(
       path: '/dashboard/workshops',
 
       builder: (context, state) {
@@ -76,25 +94,85 @@ final appRouter = GoRouter(
     ),
 
     GoRoute(
-      path: '/dashboard/enrollments',
+      path: '/offerings/:slug',
 
       builder: (context, state) {
-        return RoleProtectedPage(
-          allow: (user) => user.isAdmin || user.isTrainer,
+        final slug = state.pathParameters['slug']!;
 
-          child: const EnrollmentsPage(),
-        );
+        return OfferingDetailPage(slug: slug);
       },
     ),
 
     GoRoute(
-      path: '/my-enrollments',
+      path: '/my-learning',
 
       builder: (context, state) {
-        return ProtectedPage(
-          redirectTo: state.uri.toString(),
+        return const MyLearningPage();
+      },
+    ),
 
-          child: const MyEnrollmentsPage(),
+    GoRoute(
+      path: '/certificates',
+
+      builder: (context, state) {
+        return const CertificatesPage();
+      },
+    ),
+
+    GoRoute(
+      path: '/schedule',
+
+      builder: (context, state) {
+        return const SchedulePage();
+      },
+    ),
+
+    GoRoute(
+      path: '/attendance',
+
+      builder: (context, state) {
+        return const LearnerAttendancePage();
+      },
+    ),
+
+    GoRoute(
+      path: '/dashboard/attendance',
+
+      builder: (context, state) {
+        return const AttendanceManagementPage();
+      },
+    ),
+
+    GoRoute(
+      path: '/progress',
+
+      builder: (context, state) {
+        return const LearnerProgressPage();
+      },
+    ),
+    GoRoute(
+      path: '/dashboard/offering-enrollments',
+
+      builder: (context, state) {
+        return const AdminOfferingEnrollmentPage();
+      },
+    ),
+
+    GoRoute(
+      path: '/dashboard/sessions',
+      builder: (context, state) {
+        return RoleProtectedPage(
+          allow: (user) => user.isAdmin || user.isTrainer,
+          child: const SessionManagementPage(),
+        );
+      },
+    ),
+    GoRoute(
+      path: '/dashboard/offerings',
+      builder: (context, state) {
+        return RoleProtectedPage(
+          allow: (user) => user.isAdmin || user.isTrainer,
+          child: const OfferingManagementPage(),
         );
       },
     ),

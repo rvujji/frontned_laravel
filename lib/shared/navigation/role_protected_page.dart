@@ -35,7 +35,7 @@ class RoleProtectedPage extends ConsumerWidget {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (context.mounted) {
               if (user?.isStudent ?? false) {
-                context.go('/my-enrollments');
+                context.go('/my-learning');
               } else {
                 context.go('/');
               }

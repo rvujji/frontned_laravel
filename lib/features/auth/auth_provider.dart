@@ -54,7 +54,13 @@ class AuthNotifier extends AsyncNotifier<User?> {
   Future<void> logout() async {
     final service = ref.read(authServiceProvider);
 
-    await service.logout();
+    try {
+      await service.logout();
+    } catch (_) {
+      // Ignore backend logout failures
+    }
+
+    // await AppStorage.clear();
 
     state = const AsyncData(null);
   }

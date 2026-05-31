@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/cupertino.dart';
 
 import 'app_exception.dart';
 import 'constants.dart';
@@ -47,11 +48,25 @@ class ApiClient {
           handler.next(response);
         },
 
-        onError: (DioException error, handler) {
-          print('ERROR => ${error.response?.statusCode}');
-          print('MESSAGE => ${error.message}');
+        onError: (e, handler) {
+          debugPrint(
+            'REQUEST => ${e.requestOptions.method} '
+            '${e.requestOptions.path}',
+          );
 
-          handler.next(error);
+          debugPrint('DATA => ${e.requestOptions.data}');
+
+          debugPrint('ERROR => ${e.response?.statusCode}');
+
+          debugPrint('MESSAGE => ${e.message}');
+
+          if (e.response?.data != null) {
+            debugPrint('RESPONSE DATA => ${e.response?.data}');
+          }
+
+          debugPrintStack(stackTrace: e.stackTrace);
+
+          handler.next(e);
         },
       ),
     );
@@ -91,6 +106,16 @@ class ApiClient {
   Future<dynamic> put(String path, {dynamic data}) async {
     try {
       final response = await _dio.put(path, data: data);
+
+      return response.data;
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<dynamic> patch(String path, {dynamic data}) async {
+    try {
+      final response = await _dio.patch(path, data: data);
 
       return response.data;
     } on DioException catch (e) {

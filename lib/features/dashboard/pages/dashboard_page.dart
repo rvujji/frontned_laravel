@@ -18,6 +18,7 @@ class DashboardPage extends ConsumerWidget {
     final recentWorkshopsAsync = ref.watch(recentWorkshopsProvider);
 
     return DashboardShell(
+      title: "Dashboard",
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
 

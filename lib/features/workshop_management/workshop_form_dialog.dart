@@ -52,6 +52,12 @@ class _WorkshopFormDialogState extends ConsumerState<WorkshopFormDialog> {
 
     _titleController = TextEditingController(text: workshop?.title ?? '');
 
+    _titleController.addListener(() {
+      if (!isEdit) {
+        _slugController.text = _generateSlug(_titleController.text);
+      }
+    });
+
     _slugController = TextEditingController(text: workshop?.slug ?? '');
 
     _shortDescriptionController = TextEditingController(
@@ -88,6 +94,15 @@ class _WorkshopFormDialogState extends ConsumerState<WorkshopFormDialog> {
     _videoUrlController.dispose();
 
     super.dispose();
+  }
+
+  String _generateSlug(String value) {
+    return value
+        .toLowerCase()
+        .trim()
+        .replaceAll(RegExp(r'[^a-z0-9\s-]'), '')
+        .replaceAll(RegExp(r'\s+'), '-')
+        .replaceAll(RegExp(r'-+'), '-');
   }
 
   Future<void> _pickThumbnail() async {
@@ -222,8 +237,11 @@ class _WorkshopFormDialogState extends ConsumerState<WorkshopFormDialog> {
 
               TextField(
                 controller: _slugController,
-
-                decoration: const InputDecoration(labelText: 'Slug'),
+                readOnly: true,
+                decoration: const InputDecoration(
+                  labelText: 'Slug',
+                  helperText: 'Automatically generated',
+                ),
               ),
 
               const SizedBox(height: 16),

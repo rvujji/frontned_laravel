@@ -6,7 +6,16 @@ import 'dashboard_topbar.dart';
 class DashboardShell extends StatelessWidget {
   final Widget child;
 
-  const DashboardShell({super.key, required this.child});
+  final String? title;
+
+  final List<Widget>? actions;
+
+  const DashboardShell({
+    super.key,
+    required this.child,
+    this.title,
+    this.actions,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +31,7 @@ class DashboardShell extends StatelessWidget {
           Expanded(
             child: Column(
               children: [
-                const DashboardTopbar(),
+                DashboardTopbar(title: title, actions: actions),
 
                 Expanded(child: child),
               ],

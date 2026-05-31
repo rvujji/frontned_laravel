@@ -1,10 +1,20 @@
 import 'package:flutter/material.dart';
 
+import '../../../shared/responsive_layout.dart';
+
 class DashboardTopbar extends StatelessWidget {
-  const DashboardTopbar({super.key});
+  final String? title;
+
+  final List<Widget>? actions;
+
+  const DashboardTopbar({super.key, this.title, this.actions});
 
   @override
   Widget build(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
+
+    final isMobile = ResponsiveLayout.isMobile(width);
+
     return Container(
       height: 72,
 
@@ -13,24 +23,39 @@ class DashboardTopbar extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
 
-        border: Border(bottom: BorderSide(color: Colors.grey.shade300)),
+        border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
       ),
 
       child: Row(
         children: [
-          const Text(
-            'Dashboard',
+          if (isMobile)
+            Builder(
+              builder: (context) {
+                return IconButton(
+                  onPressed: () {
+                    Scaffold.of(context).openDrawer();
+                  },
 
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
+                  icon: const Icon(Icons.menu),
+                );
+              },
+            ),
 
-          const Spacer(),
+          if (title != null)
+            Expanded(
+              child: Text(
+                title!,
 
-          CircleAvatar(
-            backgroundColor: Colors.indigo.shade100,
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            )
+          else
+            const Spacer(),
 
-            child: const Icon(Icons.person),
-          ),
+          if (actions != null) ...actions!,
         ],
       ),
     );

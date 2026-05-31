@@ -30,6 +30,7 @@ class WorkshopManagementPage extends ConsumerWidget {
     final workshopsAsync = ref.watch(managedWorkshopsProvider);
 
     return DashboardShell(
+      title: "Workshops",
       child: Padding(
         padding: const EdgeInsets.all(24),
 

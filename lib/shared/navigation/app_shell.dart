@@ -38,10 +38,10 @@ class AppShell extends ConsumerWidget {
           if (user != null)
             TextButton(
               onPressed: () {
-                context.go('/my-enrollments');
+                context.go('/my-learning');
               },
 
-              child: const Text('My Enrollments'),
+              child: const Text('My Learning'),
             ),
 
           const SizedBox(width: 12),
