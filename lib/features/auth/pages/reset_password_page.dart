@@ -4,21 +4,25 @@ import 'package:go_router/go_router.dart';
 import '../../../shared/navigation/app_shell.dart';
 import '../auth_service.dart';
 
-class RegisterPage extends StatefulWidget {
-  const RegisterPage({super.key});
+class ResetPasswordPage extends StatefulWidget {
+  final String token;
+  final String email;
+
+  const ResetPasswordPage({
+    super.key,
+    required this.token,
+    required this.email,
+  });
 
   @override
-  State<RegisterPage> createState() => _RegisterPageState();
+  State<ResetPasswordPage> createState() => _ResetPasswordPageState();
 }
 
-class _RegisterPageState extends State<RegisterPage> {
+class _ResetPasswordPageState extends State<ResetPasswordPage> {
   final _formKey = GlobalKey<FormState>();
 
-  final _nameController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _phoneController = TextEditingController();
-
   final _passwordController = TextEditingController();
+
   final _confirmPasswordController = TextEditingController();
 
   final _authService = AuthService();
@@ -27,15 +31,12 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   void dispose() {
-    _nameController.dispose();
-    _emailController.dispose();
-    _phoneController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
   }
 
-  Future<void> _register() async {
+  Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -45,12 +46,9 @@ class _RegisterPageState extends State<RegisterPage> {
     });
 
     try {
-      await _authService.register(
-        name: _nameController.text.trim(),
-        email: _emailController.text.trim(),
-        phone: _phoneController.text.trim().isEmpty
-            ? null
-            : _phoneController.text.trim(),
+      await _authService.resetPassword(
+        token: widget.token,
+        email: widget.email,
         password: _passwordController.text,
         passwordConfirmation: _confirmPasswordController.text,
       );
@@ -58,12 +56,10 @@ class _RegisterPageState extends State<RegisterPage> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Registration successful. Please verify your email.'),
-        ),
+        const SnackBar(content: Text('Password reset successful.')),
       );
 
-      context.go('/verification-required');
+      context.go('/login');
     } catch (e) {
       if (!mounted) return;
 
@@ -94,60 +90,32 @@ class _RegisterPageState extends State<RegisterPage> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      const Icon(Icons.lock_reset, size: 72),
+
+                      const SizedBox(height: 24),
+
                       const Text(
-                        'Create Account',
+                        'Reset Password',
                         style: TextStyle(
                           fontSize: 30,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
 
+                      const SizedBox(height: 12),
+
+                      Text(
+                        widget.email,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+
                       const SizedBox(height: 24),
-
-                      TextFormField(
-                        controller: _nameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Full Name',
-                        ),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Name is required';
-                          }
-
-                          return null;
-                        },
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      TextFormField(
-                        controller: _emailController,
-                        decoration: const InputDecoration(labelText: 'Email'),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Email is required';
-                          }
-
-                          return null;
-                        },
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      TextFormField(
-                        controller: _phoneController,
-                        decoration: const InputDecoration(
-                          labelText: 'Phone (Optional)',
-                        ),
-                      ),
-
-                      const SizedBox(height: 16),
 
                       TextFormField(
                         controller: _passwordController,
                         obscureText: true,
                         decoration: const InputDecoration(
-                          labelText: 'Password',
+                          labelText: 'New Password',
                         ),
                         validator: (value) {
                           if (value == null || value.length < 8) {
@@ -180,16 +148,16 @@ class _RegisterPageState extends State<RegisterPage> {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: _loading ? null : _register,
+                          onPressed: _loading ? null : _submit,
                           child: _loading
                               ? const SizedBox(
-                                  height: 18,
                                   width: 18,
+                                  height: 18,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
                                   ),
                                 )
-                              : const Text('Create Account'),
+                              : const Text('Reset Password'),
                         ),
                       ),
 
@@ -199,7 +167,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         onPressed: () {
                           context.go('/login');
                         },
-                        child: const Text('Already have an account? Login'),
+                        child: const Text('Back To Login'),
                       ),
                     ],
                   ),

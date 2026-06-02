@@ -2,12 +2,17 @@ import 'package:go_router/go_router.dart';
 
 import '../features/attendance/attendance_management_page.dart';
 import '../features/attendance/learner_attendance_page.dart';
+import '../features/auth/pages/forgot_password_page.dart';
 import '../features/auth/pages/login_page.dart';
+import '../features/auth/pages/register_page.dart';
+import '../features/auth/pages/reset_password_page.dart';
+import '../features/auth/pages/verify_email_page.dart';
 import '../features/certificates/certificates_page.dart';
 import '../features/dashboard/pages/dashboard_page.dart';
 import '../features/home/home_page.dart';
 import '../features/learning/pages/learning_detail_page.dart';
 import '../features/learning/pages/my_learning_page.dart';
+import '../features/offering_enrollments/email_verification_required_page.dart';
 import '../features/offering_enrollments/offering_enrollment_page.dart';
 import '../features/offering_management/offering_management_page.dart';
 import '../features/offerings/pages/offering_detail_page.dart';
@@ -28,6 +33,48 @@ final appRouter = GoRouter(
 
       builder: (context, state) {
         return const HomePage();
+      },
+    ),
+
+    GoRoute(
+      path: '/register',
+      builder: (context, state) => const RegisterPage(),
+    ),
+
+    GoRoute(
+      path: '/forgot-password',
+      builder: (context, state) => const ForgotPasswordPage(),
+    ),
+
+    GoRoute(
+      path: '/reset-password',
+      builder: (context, state) {
+        final token = state.uri.queryParameters['token'] ?? '';
+
+        final email = state.uri.queryParameters['email'] ?? '';
+
+        return ResetPasswordPage(token: token, email: email);
+      },
+    ),
+
+    GoRoute(
+      path: '/verification-required',
+      builder: (context, state) {
+        return const EmailVerificationRequiredPage(returnToPreviousPage: true);
+      },
+    ),
+
+    GoRoute(
+      path: '/verify-email',
+      builder: (context, state) {
+        final params = state.uri.queryParameters;
+
+        return VerifyEmailPage(
+          id: params['id'] ?? '',
+          hash: params['hash'] ?? '',
+          expires: params['expires'] ?? '',
+          signature: params['signature'] ?? '',
+        );
       },
     ),
 

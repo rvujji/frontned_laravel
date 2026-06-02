@@ -64,4 +64,16 @@ class AuthNotifier extends AsyncNotifier<User?> {
 
     state = const AsyncData(null);
   }
+
+  Future<void> refreshUser() async {
+    try {
+      final service = ref.read(authServiceProvider);
+
+      final user = await service.me();
+
+      state = AsyncData(user);
+    } catch (e, stackTrace) {
+      state = AsyncError(e, stackTrace);
+    }
+  }
 }

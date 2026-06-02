@@ -23,11 +23,24 @@ class _OfferingDetailPageState extends ConsumerState<OfferingDetailPage> {
   bool _isEnrolling = false;
 
   Future<void> _enroll(int offeringId) async {
+    print('STEP 1 - Enroll clicked');
     final user = ref.read(authProvider).valueOrNull;
-
+    print('STEP 2 - User loaded');
     if (user == null) {
       context.go('/login?redirect=/offerings/${widget.slug}');
+      return;
+    }
+    print('STEP 4 - User exists');
+    debugPrint('========== ENROLL DEBUG ==========');
+    debugPrint('User ID: ${user.id}');
+    debugPrint('Email: ${user.email}');
+    debugPrint('emailVerified: ${user.emailVerified}');
+    debugPrint('emailVerifiedAt: ${user.emailVerifiedAt}');
+    debugPrint('=================================');
 
+    if (!user.emailVerified) {
+      // throw Exception('STOP HERE');
+      context.push('/verification-required');
       return;
     }
 

@@ -97,6 +97,19 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           : const Text('Login'),
                     ),
                   ),
+                  TextButton(
+                    onPressed: () {
+                      context.go('/forgot-password');
+                    },
+                    child: const Text('Forgot Password?'),
+                  ),
+
+                  TextButton(
+                    onPressed: () {
+                      context.go('/register');
+                    },
+                    child: const Text('Create Account'),
+                  ),
                 ],
               ),
             ),
