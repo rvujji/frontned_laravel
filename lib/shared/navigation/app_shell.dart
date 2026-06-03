@@ -23,7 +23,13 @@ class AppShell extends ConsumerWidget {
             context.go('/');
           },
 
-          child: const Text('Skill Garage'),
+          child: Row(
+            children: [
+              Image.asset('assets/images/logo.png', height: 40),
+              const SizedBox(width: 12),
+              const Text('Skill Garage'),
+            ],
+          ),
         ),
 
         actions: [

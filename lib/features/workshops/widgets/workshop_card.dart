@@ -10,6 +10,7 @@ class WorkshopCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('IMAGE URL = ${workshop.thumbnailUrl}');
     return Card(
       clipBehavior: Clip.antiAlias,
 
@@ -37,12 +38,32 @@ class WorkshopCard extends StatelessWidget {
 
                       fit: BoxFit.cover,
 
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          color: Colors.grey.shade300,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) {
+                          return child;
+                        }
 
-                          child: const Center(
-                            child: Icon(Icons.image, size: 48),
+                        return const Center(child: CircularProgressIndicator());
+                      },
+
+                      errorBuilder: (context, error, stackTrace) {
+                        debugPrint('================================');
+                        debugPrint('IMAGE LOAD FAILED');
+                        debugPrint('URL: ${workshop.thumbnailUrl}');
+                        debugPrint('ERROR: $error');
+                        debugPrint('================================');
+
+                        return Container(
+                          color: Colors.red.shade100,
+                          child: Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8),
+                              child: Text(
+                                error.toString(),
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(fontSize: 12),
+                              ),
+                            ),
                           ),
                         );
                       },
